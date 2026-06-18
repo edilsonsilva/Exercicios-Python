@@ -1,12 +1,22 @@
-from PyQt6.QtWidgets import QApplication, QWidget,QLabel,QLineEdit,QTableWidget, QVBoxLayout,QHBoxLayout
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QApplication, QWidget,QLabel,QLineEdit,QTableWidget, QVBoxLayout,QHBoxLayout,QTableWidgetItem
+from PyQt6.QtGui import QPixmap,QIcon
+from PyQt6.QtCore import Qt
+
 from sys import argv
 
 class Caixa(QWidget):
+
     def __init__(self):
+        self.linha = 0
+        self.valor_total = 0.0
+
         super().__init__()
         self.setWindowTitle("Caixa da Padaria")
         self.setGeometry(150,50,1600,900)
+
+        self.setWindowIcon(QIcon("icone.png"))
+
+  
 
         # Criar o layout horizontal
         self.layout_horizontal = QHBoxLayout()
@@ -50,7 +60,31 @@ class Caixa(QWidget):
         self.edit_descricao_produto.setFixedHeight(150)
 
 
+
+        # criar a label e o edit do quantidade do produto ===============================
+        self.label_quantidade_produto = QLabel("Quantidade do Produto")
+        self.label_quantidade_produto.setStyleSheet("QLabel{font-weight:bold;font-size:15pt;color:#ffffff}")
+        self.edit_quantidade_produto = QLineEdit()
+        self.edit_quantidade_produto.setStyleSheet("QLineEdit{font-size:15pt}")
+        
+
        
+        # criar a label e o edit do preco do produto ===============================
+        self.label_preco_produto = QLabel("Preço do Produto")
+        self.label_preco_produto.setStyleSheet("QLabel{font-weight:bold;font-size:15pt;color:#ffffff}")
+        self.edit_preco_produto = QLineEdit()
+        self.edit_preco_produto.setStyleSheet("QLineEdit{font-size:15pt}")
+        
+
+
+        
+        # criar a label e o edit do subtotal do produto ===============================
+        self.label_subtotal_produto = QLabel("Subtotal")
+        self.label_subtotal_produto.setStyleSheet("QLabel{font-weight:bold;font-size:15pt;color:#ffffff}")
+        self.edit_subtotal_produto = QLineEdit("Tecle F3 para calcular o subtotal")
+        self.edit_subtotal_produto.setStyleSheet("QLineEdit{font-size:15pt}")
+        self.edit_subtotal_produto.setEnabled(False)
+        
        
         # Adicionar o logo ao layout vertical
         self.layout_vert_col_esq.addWidget(self.label_logo)
@@ -65,6 +99,18 @@ class Caixa(QWidget):
         # adicionar a descricao do produto
         self.layout_vert_col_esq.addWidget(self.label_descricao_produto)
         self.layout_vert_col_esq.addWidget(self.edit_descricao_produto)
+
+        # adicionar a quantidade do produto
+        self.layout_vert_col_esq.addWidget(self.label_quantidade_produto)
+        self.layout_vert_col_esq.addWidget(self.edit_quantidade_produto)
+
+        # adicionar a preco do produto
+        self.layout_vert_col_esq.addWidget(self.label_preco_produto)
+        self.layout_vert_col_esq.addWidget(self.edit_preco_produto)
+
+        # adicionar a subtotal do produto
+        self.layout_vert_col_esq.addWidget(self.label_subtotal_produto)
+        self.layout_vert_col_esq.addWidget(self.edit_subtotal_produto)
 
 
         # Setar o layout vertical a label coluna esquerda
@@ -87,24 +133,42 @@ class Caixa(QWidget):
        
        
        
-       
-       
-       
+        #====================== Trabalhando com a coluna da direita ===============================
        
         self.label_col_direita = QLabel()
         self.label_col_direita.setStyleSheet("QLabel{background-color:#ffff66}")
 
+        # Criar o layout vertical da coluna da direita para os elementos:
+        # QTableWidget, QLabel, QLineEdit
+        self.layout_vert_col_dir = QVBoxLayout()
+
+        self.tabel_produtos = QTableWidget()
+        # Criar os itens do cabeçalho da tabela
+        cabecalho = ["Cod.Produto", "Nome do Produto","Quantidade","Preço","Sub total"]
+        # Definir a quantidade de colunas da nossa tabela
+        self.tabel_produtos.setColumnCount(5)
+        # Adicionar o cabecalho a tabela
+        self.tabel_produtos.setHorizontalHeaderLabels(cabecalho)
+        # Adicionar algumas linhas
+        self.tabel_produtos.setRowCount(20)
 
 
 
+        self.label_total_pagar = QLabel("Total a Pagar")
+        self.label_total_pagar.setStyleSheet("QLabel{font-size:50pt;font-weight:bold}")
+
+        self.edit_total_pagar = QLineEdit("0,00")
+        self.edit_total_pagar.setStyleSheet("QLineEdit{font-size:60pt;font-weight:bold}")
+        self.edit_total_pagar.setEnabled(False)
 
 
+        # Adicionar os controles ao layout vertical da col direita
+        self.layout_vert_col_dir.addWidget(self.tabel_produtos)
+        self.layout_vert_col_dir.addWidget(self.label_total_pagar)
+        self.layout_vert_col_dir.addWidget(self.edit_total_pagar)
 
-
-
-
-
-
+        # Setar o layout vertical da col direita na coluna da direita
+        self.label_col_direita.setLayout(self.layout_vert_col_dir)
 
 
 
@@ -117,6 +181,36 @@ class Caixa(QWidget):
 
         # Setar o layout horizontal a nossa janela
         self.setLayout(self.layout_horizontal)
+
+        # Vamos usar a função keyPress para fazer a janela
+        # observar as teclas que estão sendo digitadas
+        # e, assim, capturar a tecla específica e executar
+        # uma ação
+        self.keyPressEvent = self.keyPressEvent
+
+    def keyPressEvent(self, e):
+        if(e.key()==Qt.Key.Key_F3):
+            sub = float(self.edit_quantidade_produto.text()) * float(self.edit_preco_produto.text())
+            self.edit_subtotal_produto.setText(str(sub))
+
+            self.tabel_produtos.setItem(self.linha,0,QTableWidgetItem(self.edit_cod_produto.text()))
+            self.tabel_produtos.setItem(self.linha,1,QTableWidgetItem(self.edit_nome_produto.text()))
+            self.tabel_produtos.setItem(self.linha,2,QTableWidgetItem(self.edit_quantidade_produto.text()))
+            self.tabel_produtos.setItem(self.linha,3,QTableWidgetItem(self.edit_preco_produto.text()))
+            self.tabel_produtos.setItem(self.linha,4,QTableWidgetItem(self.edit_subtotal_produto.text()))
+            self.linha+=1
+
+            self.valor_total+=sub
+
+            self.edit_total_pagar.setText(str(self.valor_total))
+
+            self.edit_cod_produto.setText("")
+            self.edit_nome_produto.setText("")
+            self.edit_quantidade_produto.setText("")
+            self.edit_descricao_produto.setText("")
+            self.edit_preco_produto.setText("")
+            self.edit_subtotal_produto.setText("Tecle F3 para calcular o sub total")
+
 
 
 app = QApplication(argv)
